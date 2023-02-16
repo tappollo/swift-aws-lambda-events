@@ -33,6 +33,8 @@ public enum CognitoEvent: Equatable {
     }
 
     case preSignUpSignUp(Parameters, PreSignUp)
+    case preSignUpAdminCreateUser(Parameters, PreSignUp)
+    case preSignUpExternalProvider(Parameters, PreSignUp)
 
     public struct PreSignUp: Codable, Hashable {
         /// One or more name-value pairs representing user attributes. The attribute names are the keys.
@@ -49,7 +51,9 @@ public enum CognitoEvent: Equatable {
 
     public var commonParameters: Parameters {
         switch self {
-        case .preSignUpSignUp(let params, _):
+        case    .preSignUpSignUp(let params, _),
+                .preSignUpAdminCreateUser(let params, _),
+                .preSignUpExternalProvider(let params, _):
             return params
         }
     }
@@ -84,6 +88,14 @@ extension CognitoEvent: Codable {
             let value = try container.decode(CognitoEvent.PreSignUp.self, forKey: .request)
 
             self = .preSignUpSignUp(params, value)
+        case "PreSignUp_AdminCreateUser":
+            let value = try container.decode(CognitoEvent.PreSignUp.self, forKey: .request)
+
+            self = .preSignUpAdminCreateUser(params, value)
+        case "PreSignUp_ExternalProvider":
+            let value = try container.decode(CognitoEvent.PreSignUp.self, forKey: .request)
+
+            self = .preSignUpExternalProvider(params, value)
         default:
             throw CognitoEventError.unimplementedEvent(triggerSource)
         }
@@ -102,7 +114,9 @@ extension CognitoEvent: Codable {
         try container.encode(params.callerContext, forKey: .callerContext)
 
         switch self {
-        case .preSignUpSignUp(_, let value):
+        case    .preSignUpSignUp(_, let value),
+                .preSignUpAdminCreateUser(_, let value),
+                .preSignUpExternalProvider(_, let value):
             try container.encode(value, forKey: .response)
         }
     }
@@ -110,7 +124,9 @@ extension CognitoEvent: Codable {
 
 public enum CognitoEventResponse {
     case preSignUpSignUp(CognitoEvent.Parameters, CognitoEvent.PreSignUp, PreSignUp)
-
+    case preSignUpAdminCreateUser(CognitoEvent.Parameters, CognitoEvent.PreSignUp, PreSignUp)
+    case preSignUpExternalProvider(CognitoEvent.Parameters, CognitoEvent.PreSignUp, PreSignUp)
+    
     public struct PreSignUp: Codable, Hashable {
         public let autoConfirmUser: Bool
         public let autoVerifyPhone: Bool
@@ -125,7 +141,9 @@ public enum CognitoEventResponse {
 
     public var commonParameters: CognitoEvent.Parameters {
         switch self {
-        case .preSignUpSignUp(let params, _, _):
+        case    .preSignUpSignUp(let params, _, _),
+                .preSignUpAdminCreateUser(let params, _, _),
+                .preSignUpExternalProvider(let params, _, _):
             return params
         }
     }
@@ -161,6 +179,16 @@ extension CognitoEventResponse: Codable {
             let response = try container.decode(CognitoEventResponse.PreSignUp.self, forKey: .response)
 
             self = .preSignUpSignUp(params, request, response)
+        case "PreSignUp_AdminCreateUser":
+            let request = try container.decode(CognitoEvent.PreSignUp.self, forKey: .request)
+            let response = try container.decode(CognitoEventResponse.PreSignUp.self, forKey: .response)
+
+            self = .preSignUpAdminCreateUser(params, request, response)
+        case "PreSignUp_ExternalProvider":
+            let request = try container.decode(CognitoEvent.PreSignUp.self, forKey: .request)
+            let response = try container.decode(CognitoEventResponse.PreSignUp.self, forKey: .response)
+
+            self = .preSignUpExternalProvider(params, request, response)
         default:
             throw CognitoEventError.unimplementedEvent(triggerSource)
         }
@@ -179,7 +207,9 @@ extension CognitoEventResponse: Codable {
         try container.encode(params.callerContext, forKey: .callerContext)
 
         switch self {
-        case .preSignUpSignUp(_, let request, let response):
+        case    .preSignUpSignUp(_, let request, let response),
+                .preSignUpAdminCreateUser(_, let request, let response),
+                .preSignUpExternalProvider(_, let request, let response):
             try container.encode(request, forKey: .request)
             try container.encode(response, forKey: .response)
         }
